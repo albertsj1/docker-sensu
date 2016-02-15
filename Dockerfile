@@ -1,32 +1,21 @@
 FROM debian:jessie
-MAINTAINER Shane Starcher <shanestarcher@gmail.com>
-
-RUN apt-get update && apt-get install -y wget ca-certificates && apt-get -y clean
-RUN wget -q http://repositories.sensuapp.org/apt/pubkey.gpg -O-  | apt-key add -
-RUN echo "deb     http://repositories.sensuapp.org/apt sensu main" > /etc/apt/sources.list.d/sensu.list
-
-
-RUN \
-	apt-get update && \
-    apt-get install -y sensu && \
-    apt-get -y clean
-
+MAINTAINER John Alberts <john@alberts.me>
 
 ENV PATH /opt/sensu/embedded/bin:$PATH
 
-#Nokogiri is needed by aws plugins
-RUN \
-	apt-get update && \
-    apt-get install -y libxml2 libxml2-dev libxslt1-dev zlib1g-dev build-essential  && \
-    gem install nokogiri && \
-    apt-get remove -y libxml2-dev libxslt1-dev zlib1g-dev && \
-    apt-get autoremove -y && \
-    apt-get -y clean
-
-RUN gem install yaml2json
-
-RUN wget https://github.com/jwilder/dockerize/releases/download/v0.0.2/dockerize-linux-amd64-v0.0.2.tar.gz
-RUN tar -C /usr/local/bin -xzvf dockerize-linux-amd64-v0.0.2.tar.gz
+RUN apt-get update && \
+  apt-get install -y wget ca-certificates && \
+  wget -q http://repositories.sensuapp.org/apt/pubkey.gpg -O-  | apt-key add - && \
+  echo "deb     http://repositories.sensuapp.org/apt sensu main" > /etc/apt/sources.list.d/sensu.list && \
+  apt-get update && \
+  apt-get install -y sensu libxml2 libxml2-dev libxslt1-dev zlib1g-dev build-essential && \
+  gem install --no-ri --no-rdoc nokogiri yaml2json && \
+  apt-get remove --purge -y libxml2-dev libxslt1-dev zlib1g-dev $(apt-mark showauto) && rm -rf /var/lib/apt/lists/*
+  apt-get autoremove -y && \
+  apt-get -y clean && \
+  wget https://github.com/jwilder/dockerize/releases/download/v0.0.2/dockerize-linux-amd64-v0.0.2.tar.gz && \
+  tar -C /usr/local/bin -xzvf dockerize-linux-amd64-v0.0.2.tar.gz && \
+  rm -f dockerize-linux-amd64-v0.0.2.tar.gz
 
 ENV DEFAULT_PLUGINS_REPO sensu-plugins
 ENV DEFAULT_PLUGINS_VERSION master
